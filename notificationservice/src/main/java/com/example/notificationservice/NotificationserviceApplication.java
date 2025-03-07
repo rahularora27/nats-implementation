@@ -4,12 +4,9 @@ import io.nats.client.Connection;
 import io.nats.client.Dispatcher;
 import io.nats.client.Message;
 import io.nats.client.Nats;
-import io.nats.client.Subscription;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import jakarta.annotation.PostConstruct;
-
-import java.nio.charset.StandardCharsets;
 
 @SpringBootApplication
 public class NotificationserviceApplication {
@@ -23,18 +20,19 @@ public class NotificationserviceApplication {
 	@PostConstruct
 	public void init() {
 		try {
-			// Connect to the NATS server (adjust URL if needed)
+			// Connection to the NATS server
 			natsConnection = Nats.connect("nats://localhost:4222");
+			System.out.println("Notification Service connected to NATS server");
 
-			// Create a Dispatcher that handles messages via our handleMessage method
+			// Creation of a Dispatcher that handles the incoming message
 			Dispatcher dispatcher = natsConnection.createDispatcher(this::handleMessage);
 
 			// Subscribe to both "order.success" and "order.failure" subjects.
 			// Using "notificationGroup" as the queue group for load balancing if running multiple instances.
-			Dispatcher subSuccess = dispatcher.subscribe("order.success", "notificationGroup");
-			Dispatcher subFailure = dispatcher.subscribe("order.failure", "notificationGroup");
+			Dispatcher subSuccess = dispatcher.subscribe("order.success", "NotificationQG");
+			Dispatcher subFailure = dispatcher.subscribe("order.failure", "NotificationQG");
 
-			System.out.println("Notification Service is listening for events...");
+			System.out.println("Notification Service is listening for order status");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -46,14 +44,14 @@ public class NotificationserviceApplication {
 	 */
 	private void handleMessage(Message msg) {
 		String subject = msg.getSubject();
-		String payload = new String(msg.getData(), StandardCharsets.UTF_8);
+		String productId = new String(msg.getData());
 
 		if ("order.success".equals(subject)) {
-			System.out.println("Notification Service: Order placed successfully. Details: " + payload);
+			System.out.println("Order placed successfully for " + productId);
 		} else if ("order.failure".equals(subject)) {
-			System.out.println("Notification Service: Order did not get placed. Details: " + payload);
+			System.out.println("Order did not get placed for " + productId);
 		} else {
-			System.out.println("Notification Service: Received message on subject " + subject + ": " + payload);
+			System.out.println("Received message on subject " + subject + ": " + productId);
 		}
 	}
 }

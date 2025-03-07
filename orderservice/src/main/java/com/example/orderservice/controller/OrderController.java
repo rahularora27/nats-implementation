@@ -24,6 +24,7 @@ public class OrderController {
     @PostConstruct
     public void init() {
         try {
+            // Connection to the NATS server
             natsConnection = Nats.connect("nats://localhost:4222");
             System.out.println("Order Service connected to NATS server.");
         } catch (Exception e) {
@@ -34,13 +35,12 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<String> placeOrder(@RequestBody Order order) {
         try {
-            String orderJson = String.format(
-                    "{\"productId\":\"%s\", \"quantity\":%d}",
-                    order.getProductId(), order.getQuantity());
-
             // Publish the order event on "order.placed" subject.
-            natsConnection.publish("order.placed", orderJson.getBytes(StandardCharsets.UTF_8));
-            System.out.println("OrderService published: " + orderJson);
+            int n = 10;
+            for (int i=0; i<n; i++) {
+                natsConnection.publish("order.placed", order.getProductId().getBytes());
+            }
+            System.out.println("OrderService published: " + n + " x " + order.getProductId());
             return new ResponseEntity<>("Post request successful", HttpStatus.CREATED);
         } catch (Exception ex) {
             ex.printStackTrace();

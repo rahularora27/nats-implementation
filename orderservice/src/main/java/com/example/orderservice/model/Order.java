@@ -2,14 +2,12 @@ package com.example.orderservice.model;
 
 public class Order {
     private String productId;
-    private int quantity;
 
     public Order() {
     }
 
-    public Order(String productId, int quantity) {
+    public Order(String productId) {
         this.productId = productId;
-        this.quantity = quantity;
     }
 
     public String getProductId() {
@@ -18,13 +16,5 @@ public class Order {
 
     public void setProductId(String productId) {
         this.productId = productId;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
     }
 }
